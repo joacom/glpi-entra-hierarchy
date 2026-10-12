@@ -453,6 +453,15 @@ Entra Hierarchy Development Team
 1.4.2 - Critical Bug Fix: OAuth Columns Missing in Fresh Installation
 
 ### Changelog
+(2026-10-12) Started Changing source to work with GLPI Version 12. I am now able to connect to Entra and grab users. Also added Office location filter if filling this out you will only collect users
+in this office, we use it for location in our company. IE Norway
+
+(2026-10-12) Bugs that still needs to be resolved:
+SSO not working, do not enable! this needs rework
+Automatic action for collecting new users from Entra do not seem to work. 
+
+
+
 - **v1.4.2** (2025-11-13) - Critical bug fix: Added missing OAuth columns in fresh installation schema
 - **v1.4.0** (2025-01-21) - Automatic SSO redirect, cookie-based preference, emergency admin access
 - **v1.3.0** (2025-01-20) - OAuth 2.0 SSO, CSRF protection, automatic user provisioning on login

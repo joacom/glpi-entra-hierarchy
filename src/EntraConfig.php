@@ -3,13 +3,15 @@
 namespace GlpiPlugin\EntraHierarchy;
 
 use CommonDBTM;
+use Plugin;
 
 /**
  * EntraConfig class for plugin configuration
  */
 class EntraConfig extends CommonDBTM
 {
-    public static $rightname = 'config';
+    // PHP 8.5 krever eksplisitt string-type for å samsvare med CommonGLPI
+    public static string $rightname = 'config';
 
     /**
      * Get the configuration
@@ -57,6 +59,7 @@ class EntraConfig extends CommonDBTM
             'sync_filter_require_job_title' => isset($input['sync_filter_require_job_title']) ? 1 : 0,
             'sync_filter_department' => $input['sync_filter_department'] ?? '',
             'sync_filter_company_name' => $input['sync_filter_company_name'] ?? '',
+            'sync_filter_office_location' => $input['sync_filter_office_location'] ?? '',
             'deleted_users_action' => $input['deleted_users_action'] ?? 'keep_active',
             'default_profiles_id' => $input['default_profiles_id'] ?? 1,
             'default_entities_id' => $input['default_entities_id'] ?? 0,
@@ -111,17 +114,18 @@ class EntraConfig extends CommonDBTM
                !empty($config['tenant_id']);
     }
 
-    /**
-     * Generate OAuth redirect URI dynamically from GLPI base URL
+	/**
+     * Generate OAuth redirect URI dynamically
      *
      * @return string
      */
-    private static function generateOAuthRedirectUri()
+    public static function generateOAuthRedirectUri()
     {
         global $CFG_GLPI;
-        return $CFG_GLPI['url_base'] . '/plugins/glpientrahierarchy/front/oauth_callback.php';
-    }
 
+        return rtrim($CFG_GLPI['url_base'], '/') . '/marketplace/glpientrahierarchy/front/oauth_callback.php';
+    }
+	
     /**
      * Get name of this type
      *

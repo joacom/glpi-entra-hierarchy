@@ -11,7 +11,7 @@ use User;
  */
 class EntraSync extends CommonDBTM
 {
-    public static $rightname = 'config';
+    public static string $rightname = 'config';
 
     /**
      * Cron task to synchronize organizational hierarchy
@@ -834,18 +834,35 @@ class EntraSync extends CommonDBTM
                 }
             }
 
-            // Filter: Company name (exact match or comma-separated list)
-            if (!empty($config['sync_filter_company_name'])) {
-                $allowedCompanies = array_map('trim', explode(',', $config['sync_filter_company_name']));
-                $userCompany = $user['companyName'] ?? '';
+// Filter: Company name (exact match or comma-separated list)
+if (!empty($config['sync_filter_company_name'])) {
+    $allowedCompanies = array_map('trim', explode(',', $config['sync_filter_company_name']));
+    $userCompany = $user['companyName'] ?? '';
 
-                if (empty($userCompany) || !in_array($userCompany, $allowedCompanies)) {
-                    continue;
-                }
-            }
+    if (empty($userCompany) || !in_array($userCompany, $allowedCompanies)) {
+        continue;
+    }
+}
 
-            // User passed all filters
-            $filtered[] = $user;
+// Filter: Office Location (exact match or comma-separated list)
+if (!empty($config['sync_filter_office_location'])) {
+    $allowedOffices = array_map(
+        'trim',
+        explode(',', $config['sync_filter_office_location'])
+    );
+
+    $userOffice = $user['officeLocation'] ?? '';
+
+    if (
+        empty($userOffice) ||
+        !in_array($userOffice, $allowedOffices)
+    ) {
+        continue;
+    }
+}
+
+// User passed all filters
+$filtered[] = $user;
         }
 
         return $filtered;

@@ -1,12 +1,15 @@
 <?php
 
-include ('../../../inc/includes.php');
+// Inkluder GLPI-kjerne
+if (!defined('GLPI_ROOT')) {
+    define('GLPI_ROOT', '/var/www/glpi');
+}
+include_once (GLPI_ROOT . "/inc/includes.php");
 
 header('Content-Type: application/json');
 
 try {
-    // CSRF is validated by GLPI 11 framework (CheckCsrfListener) before this script runs.
-    // Manual Session::checkCSRF() here would fail because the token is already consumed.
+    // CSRF er validert av rammeverket i forkant.
     Session::checkRight('config', UPDATE);
 } catch (Exception $e) {
     echo json_encode([
@@ -16,14 +19,17 @@ try {
     exit;
 }
 
-// Manually include plugin classes
-include_once(GLPI_ROOT . '/plugins/glpientrahierarchy/src/EntraConfig.php');
+// Inkluder klasse dynamisk uavhengig av om modulen står i plugins/ eller marketplace/
+$pluginDir = Plugin::getPhpDir('glpientrahierarchy');
+if (file_exists($pluginDir . '/src/EntraConfig.php')) {
+    include_once ($pluginDir . '/src/EntraConfig.php');
+}
 
 use GlpiPlugin\EntraHierarchy\EntraConfig;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
-        // Debug: log POST data
+        // Debug: logg POST-data
         error_log('AJAX save_config POST data: ' . print_r($_POST, true));
 
         $result = EntraConfig::saveConfig($_POST);

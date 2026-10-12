@@ -4,16 +4,16 @@ Automatic synchronization of organizational hierarchy (manager-subordinate relat
 
 ## Features
 
-- ✅ **OAuth 2.0 Single Sign-On** - Login to GLPI using Microsoft Entra ID credentials
+- ❌ **OAuth 2.0 Single Sign-On** - Login to GLPI using Microsoft Entra ID credentials
 - ✅ **Automatic SSO Redirect** (v1.4.0+) - Configurable auto-redirect to Microsoft login (never/cookie/always modes)
 - ✅ **Automatic User Provisioning** - Create GLPI users from Entra ID (sync + SSO)
 - ✅ **Manager-Subordinate Sync** - Automatically set `users_id_supervisor` from Entra ID manager
 - ✅ **Advanced Filtering** - Filter users by account status, user type, employee type, job title, department, company
 - ✅ **Account Status Sync** - Synchronize `accountEnabled` from Entra ID to GLPI `is_active` field
 - ✅ **Deleted User Handling** - Configurable actions (keep active/deactivate/delete) for users removed from Entra ID
-- ✅ **Scheduled Synchronization** - Cron task runs every 30 minutes (configurable)
+- ❌ **Scheduled Synchronization** - Cron task runs every 30 minutes (configurable)
 - ✅ **Manual Override Support** - Prevent auto-sync for manually set supervisors
-- ✅ **Detailed Logging** - Track all sync operations and failures
+- ❌ **Detailed Logging** - Track all sync operations and failures
 - ✅ **Connection Testing** - Test Microsoft Graph API credentials before saving
 - ✅ **CSRF Protection** - Secure OAuth state validation with session-based CSRF tokens
 - ✅ **Emergency Admin Access** - Bypass SSO redirect with `?no_sso=1` parameter

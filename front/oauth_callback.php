@@ -30,7 +30,7 @@ use GlpiPlugin\EntraHierarchy\EntraAuth;
 // Tell GLPI this is a public endpoint (no authentication required)
 define('GLPI_PUBLIC', true);
 
-// Load GLPI bootstrap
+// Load GLPI bootstrap (tilbake til riktig nivå)
 include ('../../../inc/includes.php');
 
 // Access global GLPI configuration
@@ -40,7 +40,7 @@ global $CFG_GLPI;
 require_once(Plugin::getPhpDir('glpientrahierarchy') . '/src/EntraConfig.php');
 require_once(Plugin::getPhpDir('glpientrahierarchy') . '/src/EntraAuth.php');
 
-// Ensure session is started (GLPI 11 kernel normally starts it, this is a fallback)
+// Ensure session is started
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -89,15 +89,13 @@ error_log("oauth_callback.php - Authorization code received: " . substr($authori
 error_log("oauth_callback.php - State received: " . substr($receivedState, 0, 8) . "...");
 
 // Read OAuth data from session
-// In GLPI 11, the kernel starts the session with glpi_xxx cookie name before this script runs.
-// oauth_login.php stores state/verifier under the same session, so they are available here.
 $storedState = $_SESSION['oauth_state'] ?? null;
 $codeVerifier = $_SESSION['oauth_code_verifier'] ?? null;
 
 error_log("oauth_callback.php - Stored state: " . ($storedState ? substr($storedState, 0, 8) . "..." : "NOT SET"));
 error_log("oauth_callback.php - Code verifier: " . ($codeVerifier ? "present (" . strlen($codeVerifier) . " chars)" : "NOT SET"));
 
-// Clean up OAuth data from session (no longer needed)
+// Clean up OAuth data from session
 unset($_SESSION['oauth_state']);
 unset($_SESSION['oauth_code_verifier']);
 
@@ -182,8 +180,6 @@ if (!$userId) {
 error_log("oauth_callback.php - GLPI user found: ID {$userId}");
 
 // Create GLPI session
-// Session::init() handles everything: destroys old session data, regenerates ID,
-// populates $_SESSION with user data, loads profiles and entities.
 error_log("oauth_callback.php - Creating GLPI session");
 $sessionCreated = EntraAuth::createGlpiSession($userId);
 
@@ -204,17 +200,11 @@ error_log("oauth_callback.php - glpiactiveprofile=" . (isset($_SESSION['glpiacti
 error_log("oauth_callback.php - OAuth authentication successful for user: {$email} (ID: {$userId})");
 
 // Add success message and flush session to disk BEFORE redirect.
-// Session::init() calls session_regenerate_id() which creates a new session ID.
-// The session data must be written to disk before the browser follows the redirect,
-// otherwise the next request finds an empty session file and the user appears logged out.
 Session::addMessageAfterRedirect(__('You have been successfully authenticated.', 'glpientrahierarchy'), false, INFO);
 session_write_close();
 
 error_log("oauth_callback.php - Session written and closed, redirecting to home page");
 
-// Use header() + exit instead of Html::redirect() to ensure clean redirect
-// after session_write_close(). Html::redirect() throws RedirectException which
-// could interfere with the already-closed session.
 $redirectUrl = $CFG_GLPI['root_doc'] . '/';
 header("Location: {$redirectUrl}");
 exit;

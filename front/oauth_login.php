@@ -1,4 +1,9 @@
 <?php
+
+// Tving SameSite til Lax slik at cookien overlever omdirigeringen fra Microsoft
+ini_set('session.cookie_samesite', 'Lax');
+ini_set('session.cookie_secure', '1');
+
 /*
  -------------------------------------------------------------------------
  Entra Hierarchy plugin for GLPI
@@ -40,48 +45,38 @@ global $CFG_GLPI;
 require_once(Plugin::getPhpDir('glpientrahierarchy') . '/src/EntraConfig.php');
 require_once(Plugin::getPhpDir('glpientrahierarchy') . '/src/EntraAuth.php');
 
-// Start PHP session without requiring authentication (needed for OAuth flow)
-Session::setPath();
+// Ensure session is started
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 error_log("oauth_login.php - Starting OAuth 2.0 login flow");
 
 // Load OAuth configuration
 $config = EntraConfig::getConfig();
 
-if (!$config) {
-    error_log("oauth_login.php - Plugin configuration not found");
-    Session::addMessageAfterRedirect(__('OAuth configuration not found. Please contact your administrator.', 'glpientrahierarchy'), false, ERROR);
+if (!$config || !isset($config['oauth_enabled']) || !$config['oauth_enabled']) {
+    error_log("oauth_login.php - OAuth not configured or disabled");
+    Session::addMessageAfterRedirect(__('OAuth authentication is not available.', 'glpientrahierarchy'), false, ERROR);
     Html::redirect($CFG_GLPI['root_doc'] . '/');
 }
 
-// Check if OAuth is enabled
-if (!isset($config['oauth_enabled']) || !$config['oauth_enabled']) {
-    error_log("oauth_login.php - OAuth is not enabled");
-    Session::addMessageAfterRedirect(__('OAuth authentication is not enabled.', 'glpientrahierarchy'), false, ERROR);
-    Html::redirect($CFG_GLPI['root_doc'] . '/');
-}
-
-// Validate OAuth configuration (use OAuth-specific credentials or fallback to shared credentials)
-// Use empty() to handle both NULL and empty string values
-$clientId = !empty($config['oauth_client_id']) ? $config['oauth_client_id'] : ($config['client_id'] ?? null);
-$tenantId = !empty($config['oauth_tenant_id']) ? $config['oauth_tenant_id'] : ($config['tenant_id'] ?? null);
-$redirectUri = $config['oauth_redirect_uri'] ?? null;
-
-if (empty($clientId) || empty($tenantId) || empty($redirectUri)) {
-    error_log("oauth_login.php - Incomplete OAuth configuration");
-    error_log("oauth_login.php - Client ID: " . ($clientId ? "present" : "missing"));
-    error_log("oauth_login.php - Tenant ID: " . ($tenantId ? "present" : "missing"));
-    error_log("oauth_login.php - Redirect URI: " . ($redirectUri ? "present" : "missing"));
-    Session::addMessageAfterRedirect(__('OAuth configuration is incomplete. Please contact your administrator.', 'glpientrahierarchy'), false, ERROR);
-    Html::redirect($CFG_GLPI['root_doc'] . '/');
-}
-
-// Generate authorization URL with PKCE
+// Get authorization URL (this also generates and stores state and code_verifier in $_SESSION)
 $authUrl = EntraAuth::getAuthorizationUrl($config);
 
-error_log("oauth_login.php - Redirecting to authorization URL");
-error_log("oauth_login.php - Redirect URI: " . $config['oauth_redirect_uri']);
+if (!$authUrl) {
+    error_log("oauth_login.php - Failed to generate authorization URL");
+    Session::addMessageAfterRedirect(__('Failed to initialize authentication. Please try again.', 'glpientrahierarchy'), false, ERROR);
+    Html::redirect($CFG_GLPI['root_doc'] . '/');
+}
 
-// Redirect to Microsoft Entra ID login page
-header('Location: ' . $authUrl);
+error_log("oauth_login.php - Redirecting to authorization URL");
+error_log("oauth_login.php - Redirect URI: " . ($config['oauth_redirect_uri'] ?? 'NOT SET'));
+
+// FIX: Force write and close session data to disk/cookie BEFORE redirecting,
+// ensuring the session cookie is fully persisted in the browser for the callback.
+session_write_close();
+
+// Redirect user to Microsoft Entra ID login page
+header("Location: {$authUrl}");
 exit;

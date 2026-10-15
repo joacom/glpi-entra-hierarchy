@@ -4,7 +4,7 @@ Automatic synchronization of organizational hierarchy (manager-subordinate relat
 
 ## Features
 
-- ❌ **OAuth 2.0 Single Sign-On** - Login to GLPI using Microsoft Entra ID credentials
+- ✅ **OAuth 2.0 Single Sign-On** - Login to GLPI using Microsoft Entra ID credentials
 - ✅ **Automatic SSO Redirect** (v1.4.0+) - Configurable auto-redirect to Microsoft login (never/cookie/always modes)
 - ✅ **Automatic User Provisioning** - Create GLPI users from Entra ID (sync + SSO)
 - ✅ **Manager-Subordinate Sync** - Automatically set `users_id_supervisor` from Entra ID manager
